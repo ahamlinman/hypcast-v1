@@ -2,19 +2,19 @@ import React from 'react';
 import CSSTransition from 'react-transition-group/CSSTransition';
 
 import HypcastTitle from './HypcastTitle';
-import HlsVideoPlayer from './HlsVideoPlayer';
+import MpegVideoPlayer from './MpegVideoPlayer';
 import ControllerBar from './ControllerBar';
 
 import videoTransitions from './videoTransitions.less';
 
 export default class HypcastUi extends React.Component {
   getVideoElement() {
-    const active = this.props.state === 'active';
+    const active = ['buffering', 'active'].includes(this.props.state);
 
     return (
       <CSSTransition in={active} mountOnEnter={true} unmountOnExit={true}
           classNames={videoTransitions} timeout={350}>
-        <HlsVideoPlayer src='/stream/stream.m3u8' />
+        <MpegVideoPlayer />
       </CSSTransition>
     );
   }

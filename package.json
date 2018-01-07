@@ -39,7 +39,9 @@
     "fluent-ffmpeg": "^2.1.2",
     "machina": "^2.0.0-1",
     "socket.io": "^2.0.1",
-    "tmp": "^0.0.33"
+    "tmp": "^0.0.33",
+    "websocket-stream": "^5.1.1",
+    "ws": "^4.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",

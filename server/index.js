@@ -7,31 +7,16 @@ import fs from 'fs';
 import { promisify } from 'util';
 
 import AzapTuner from './AzapTuner';
-import HlsTunerStreamer from './HlsTunerStreamer';
+import MpegTunerStreamer from './MpegTunerStreamer';
 
 const channelsPath = path.resolve('config', 'channels.conf');
 const tuner = new AzapTuner({ channelsPath });
 
 tuner.on('error', (err) => console.log('[AzapTuner error]', err));
 
-const streamer = new HlsTunerStreamer(tuner);
-streamer.on('error', (err) => console.log('[HlsTunerStreamer error]', err));
-streamer.on('transition', ({ fromState, toState }) => {
-  console.log(`streamer moving from ${fromState} to ${toState}`);
-});
-
 const app = express();
 
 app.use('/', express.static(path.join(__dirname, '../client')));
-
-app.use('/stream', (req, res, next) => {
-  if (streamer.streamPath) {
-    res.set('Access-Control-Allow-Origin', '*');
-    express.static(streamer.streamPath)(req, res, next);
-  } else {
-    next();
-  }
-});
 
 app.get('/profiles', async (req, res) => {
   const profilePath = path.resolve('config', 'profiles.json');
@@ -56,6 +41,12 @@ app.get('/channels', async (req, res) => {
 
 const server = app.listen(9400, () => {
   console.log('hypcast server started on *:9400');
+});
+
+const streamer = new MpegTunerStreamer(tuner, server);
+streamer.on('error', (err) => console.log('[HlsTunerStreamer error]', err));
+streamer.on('transition', ({ fromState, toState }) => {
+  console.log(`streamer moving from ${fromState} to ${toState}`);
 });
 
 socketio(server)
