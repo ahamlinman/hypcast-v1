@@ -18,8 +18,8 @@ declare module 'machina' {
   }
 
   export class BehavioralFsm {
-    constructor(options: FsmOptions);
-    static extend(options: FsmOptions): typeof BehavioralFsm;
+    constructor(options: Options);
+    static extend(options: Options): typeof BehavioralFsm;
 
     initialState: string;
     eventListeners: EventListeners;
@@ -56,8 +56,8 @@ declare module 'machina' {
   }
 
   export class Fsm implements ClientMeta {
-    constructor(options: FsmOptions);
-    static extend(options: FsmOptions): typeof Fsm;
+    constructor(options: Options);
+    static extend(options: Options): typeof Fsm;
 
     initialState: string;
     eventListeners: EventListeners;
@@ -86,7 +86,7 @@ declare module 'machina' {
     off(eventName?: string, callback?: EventListener): void;
   }
 
-  export interface FsmOptions {
+  export interface Options {
     initialState?: string;
     eventListeners?: EventListeners;
     states?: States;
@@ -94,7 +94,7 @@ declare module 'machina' {
     initialize?: () => void;
   }
 
-  export interface DefaultOptions extends FsmOptions {
+  export interface DefaultOptions extends Options {
     useSafeEmit: boolean;
     hierarchy: any;
     pendingDelegations: any;
@@ -105,15 +105,9 @@ declare module 'machina' {
   }
 
   export interface State {
-    _child?: StateChild;
-    _onEnter?: (client?: Client) => void;
-    _onExit?: (client?: Client) => void;
-    '*'?: (client?: Client) => void;
-
-    [action: string]: StateChild | string | ((...args: any[]) => void) | undefined;
+    // TODO: Make this work for Fsm and BehavioralFsm
+    [action: string]: any;
   }
-
-  export type StateChild = Fsm | (() => Fsm) | { factory(): Fsm };
 
   export interface EventListeners {
     [eventName: string]: EventListener[] | undefined;
