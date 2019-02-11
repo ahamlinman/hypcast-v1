@@ -18,7 +18,7 @@ declare module 'machina' {
   }
 
   export class BehavioralFsm {
-    new(options: FsmOptions): BehavioralFsm;
+    constructor(options: FsmOptions);
     static extend(options: FsmOptions): typeof BehavioralFsm;
 
     initialState: string;
@@ -56,7 +56,7 @@ declare module 'machina' {
   }
 
   export class Fsm implements ClientMeta {
-    new(options: FsmOptions): Fsm;
+    constructor(options: FsmOptions);
     static extend(options: FsmOptions): typeof Fsm;
 
     initialState: string;
@@ -106,9 +106,9 @@ declare module 'machina' {
 
   export interface State {
     _child?: StateChild;
-    _onEnter?: () => void;
-    _onExit?: () => void;
-    '*'?: () => void;
+    _onEnter?: (client?: Client) => void;
+    _onExit?: (client?: Client) => void;
+    '*'?: (client?: Client) => void;
 
     [action: string]: StateChild | string | ((...args: any[]) => void) | undefined;
   }
