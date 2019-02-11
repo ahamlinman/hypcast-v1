@@ -17,7 +17,10 @@ interface DeviceStreamer extends EventEmitter {
 export default class Controller extends EventEmitter {
   readonly tuner: TunerDevice;
   readonly streamer: DeviceStreamer;
-  readonly state: string = 'idle';
+
+  tunerOpts: any;
+  streamerOpts: any;
+  __machina__: Machina.ClientMeta | undefined;
 
   constructor(tuner: TunerDevice, streamer: DeviceStreamer) {
     super();
@@ -26,9 +29,37 @@ export default class Controller extends EventEmitter {
     this.streamer = streamer;
   }
 
+  get state() {
+    if (!this.__machina__) {
+      return Fsm.initialState;
+    }
+
+    return this.__machina__.state;
+  }
+
   start(tunerOpts: any, streamerOpts: any) {
+    this.tunerOpts = tunerOpts;
+    this.streamerOpts = streamerOpts;
+    Fsm.handle(this, 'start');
   }
 
   stop() {
+    Fsm.handle(this, 'stop');
+  }
+
+  startTuner() {
+    this.tuner.start(this.tunerOpts);
+  }
+
+  stopTuner() {
+    this.tuner.stop();
+  }
+
+  startStreamer() {
+    this.streamer.start(this.tuner.streamDevice, this.streamerOpts);
+  }
+
+  stopStreamer() {
+    this.streamer.stop();
   }
 }
