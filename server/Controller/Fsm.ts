@@ -28,6 +28,8 @@ export default new Machina.BehavioralFsm({
 
       tunerStart: 'startingStreamer',
       tunerEnd: 'idle',
+
+      error: 'stoppingTuner',
     },
 
     startingStreamer: {
@@ -45,6 +47,8 @@ export default new Machina.BehavioralFsm({
 
       streamerStart: 'active',
       streamerEnd: 'stoppingTuner',
+
+      error: 'stoppingStreamer',
     },
 
     active: {
@@ -57,6 +61,8 @@ export default new Machina.BehavioralFsm({
       tunerEnd: 'stoppingStreamer',
 
       streamerEnd: 'stoppingTuner',
+
+      error: 'stoppingStreamer',
     },
 
     stoppingStreamer: {
@@ -72,6 +78,8 @@ export default new Machina.BehavioralFsm({
       tunerEnd: 'idle',
 
       streamerEnd: 'stoppingTuner',
+
+      error: 'stoppingTuner',
     },
 
     stoppingTuner: {
@@ -84,6 +92,8 @@ export default new Machina.BehavioralFsm({
       },
 
       tunerEnd: 'idle',
+
+      error: 'idle',
     },
   },
 });

@@ -26,7 +26,16 @@ export default class Controller extends EventEmitter {
     super();
 
     this.tuner = tuner;
+    this.tuner
+      .on('lock', () => Fsm.handle(this, 'tunerStart')) // TODO change event name
+      .on('stop', () => Fsm.handle(this, 'tunerEnd'))
+      .on('error', (err) => this.handleError(err));
+
     this.streamer = streamer;
+    this.streamer
+      .on('start', () => Fsm.handle(this, 'streamerStart'))
+      .on('end', () => Fsm.handle(this, 'streamerEnd'))
+      .on('error', (err) => this.handleError(err));
   }
 
   get state() {
@@ -34,7 +43,7 @@ export default class Controller extends EventEmitter {
       return Fsm.initialState;
     }
 
-    return this.__machina__.state;
+    return Fsm.compositeState(this);
   }
 
   start(tunerOpts: any, streamerOpts: any) {
@@ -47,19 +56,28 @@ export default class Controller extends EventEmitter {
     Fsm.handle(this, 'stop');
   }
 
+  private handleError(err: Error) {
+    Fsm.handle(this, 'error');
+    this.emit('error', err);
+  }
+
   startTuner() {
     this.tuner.start(this.tunerOpts);
+    this.emit('transition');
   }
 
   stopTuner() {
     this.tuner.stop();
+    this.emit('transition');
   }
 
   startStreamer() {
     this.streamer.start(this.tuner.streamDevice, this.streamerOpts);
+    this.emit('transition');
   }
 
   stopStreamer() {
     this.streamer.stop();
+    this.emit('transition');
   }
 }

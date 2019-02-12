@@ -294,7 +294,7 @@ export default class HlsTunerStreamer extends TunerFsm {
   playlistPath: string | null = null;
 
   constructor(tuner: Tuner) {
-    super();
+    super({});
 
     this._tuner = tuner;
     this._tuner.on('lock', () => this.handle('tunerLock'));

@@ -34,6 +34,10 @@ export default class AzapTuner extends EventEmitter {
     this.device = device;
   }
 
+  get streamDevice() {
+    return this.device;
+  }
+
   tune(channel: string) {
     if (this._azap) {
       throw new Error('tuner is already tuned');
@@ -49,6 +53,10 @@ export default class AzapTuner extends EventEmitter {
     this._azap.stderr.on('data', (buf: Buffer) => {
       this._stderrBuf = this._stderrBuf ? Buffer.concat([this._stderrBuf, buf]) : buf;
     });
+  }
+
+  start(options: any) {
+    this.tune(options);
   }
 
   stop() {
