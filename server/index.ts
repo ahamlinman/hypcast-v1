@@ -7,17 +7,23 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 
 import AzapTuner from './AzapTuner';
-import HlsTunerStreamer from './HlsTunerStreamer';
+// import HlsTunerStreamer from './HlsTunerStreamer';
+import GTunerStreamer from './GTunerStreamer';
 
 const channelsPath = path.resolve('config', 'channels.conf');
 const tuner = new AzapTuner({ channelsPath });
 
-tuner.on('error', (err) => console.log('[AzapTuner error]', err));
+// tuner.on('error', (err) => console.log('[AzapTuner error]', err));
 
-const streamer = new HlsTunerStreamer(tuner);
-streamer.on('error', (err: Error) => console.log('[HlsTunerStreamer error]', err));
-streamer.on('transition', ({ fromState, toState }: { fromState: string, toState: string }) => {
-  console.log(`streamer moving from ${fromState} to ${toState}`);
+// const streamer = new HlsTunerStreamer(tuner);
+// streamer.on('error', (err: Error) => console.log('[HlsTunerStreamer error]', err));
+// streamer.on('transition', ({ fromState, toState }: { fromState: string, toState: string }) => {
+//   console.log(`streamer moving from ${fromState} to ${toState}`);
+// });
+
+const gStreamer = new GTunerStreamer();
+gStreamer.on('transition', ({ fromState, toState }: { fromState: string, toState: string }) => {
+  console.log(`gstreamer moving from ${fromState} to ${toState}`);
 });
 
 const app = express();
@@ -25,9 +31,9 @@ const app = express();
 app.use('/', express.static(path.join(__dirname, '../client')));
 
 app.use('/stream', (req, res, next) => {
-  if (streamer.streamPath) {
+  if (gStreamer.streamPath) {
     res.set('Access-Control-Allow-Origin', '*');
-    express.static(streamer.streamPath)(req, res, next);
+    express.static(gStreamer.streamPath)(req, res, next);
   } else {
     next();
   }
@@ -62,27 +68,27 @@ socketio(server)
   .on('connection', (socket) => {
     console.log('client connected');
     socket.emit('transition', {
-      toState: streamer.state,
-      tuneData: streamer.tuneData,
+      toState: gStreamer.state,
+      tuneData: gStreamer.tuneData,
     });
 
-    socket.on('tune', (options) => streamer.tune(options));
-    socket.on('stop', () => streamer.stop());
+    socket.on('tune', (options) => gStreamer.tune(options));
+    socket.on('stop', () => gStreamer.stop());
 
     const transitionHandler = ({ toState }: { toState: string }) => {
       socket.emit('transition', {
         toState,
-        tuneData: streamer.tuneData,
+        tuneData: gStreamer.tuneData,
       });
     };
-    streamer.on('transition', transitionHandler);
+    gStreamer.on('transition', transitionHandler);
 
     const errorHandler = (err: Error) => { socket.emit('hypcastError', err); };
-    streamer.on('error', errorHandler);
+    gStreamer.on('error', errorHandler);
 
     socket.on('disconnect', () => {
       console.log('client disconnected');
-      streamer.off('transition', transitionHandler);
-      streamer.off('error', errorHandler);
+      gStreamer.off('transition', transitionHandler);
+      gStreamer.off('error', errorHandler);
     });
   });
