@@ -6,7 +6,34 @@
 FROM debian:buster-slim AS base
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends nodejs ca-certificates gnupg \
+  && apt-get install -y --no-install-recommends \
+      nodejs \
+      ca-certificates \
+      gnupg \
+      python \
+      build-essential \
+      pkg-config \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY ./build/deb-multimedia-keyring_2016.8.1_all.deb /tmp
+RUN echo 'deb http://www.deb-multimedia.org buster main non-free' >> \
+    /etc/apt/sources.list.d/deb-multimedia.list \
+  && dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+      dvb-apps \
+      ffmpeg \
+      libfdk-aac2 \
+  && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+      libgstreamer1.0-dev \
+      libgstreamer-plugins-base1.0-dev \
+      gstreamer1.0-plugins-good \
+      gstreamer1.0-plugins-bad \
+      gstreamer1.0-plugins-ugly \
   && rm -rf /var/lib/apt/lists/*
 
 COPY ./build/yarn.gpg /tmp
@@ -48,20 +75,6 @@ WORKDIR /hypcast
   ENTRYPOINT ["/bin/tini", "--"]
   CMD ["node", "./dist/server/index.js"]
   EXPOSE 9400
-
-  COPY ./build/deb-multimedia-keyring_2016.8.1_all.deb /tmp
-  RUN echo 'deb http://www.deb-multimedia.org buster main non-free' >> \
-      /etc/apt/sources.list.d/deb-multimedia.list \
-    && dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
-
-  RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        dvb-apps \
-        ffmpeg \
-        libfdk-aac2 \
-        gstreamer1.0-plugins-bad \
-        gstreamer1.0-plugins-ugly \
-    && rm -rf /var/lib/apt/lists/*
 
   COPY --from=dist-modules /hypcast/node_modules /hypcast/node_modules
   COPY --from=build-server /hypcast/dist/models /hypcast/dist/models
