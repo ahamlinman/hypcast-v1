@@ -42,7 +42,12 @@ WORKDIR /hypcast
     && dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
 
   RUN apt-get update \
-    && apt-get install -y --no-install-recommends libfdk-aac1 ffmpeg dvb-apps \
+    && apt-get install -y --no-install-recommends \
+        dvb-apps \
+        ffmpeg \
+        libfdk-aac1 \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-plugins-ugly \
     && rm -rf /var/lib/apt/lists/*
 
   COPY --from=dist-modules /hypcast/node_modules /hypcast/node_modules
