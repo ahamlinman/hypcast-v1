@@ -3,7 +3,20 @@
 # many stages in this file to parallelize the build, cutting the time roughly
 # in half.
 
-FROM node:10-stretch-slim AS base
+FROM debian:buster-slim AS base
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends nodejs ca-certificates gnupg \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY ./build/yarn.gpg /tmp
+RUN apt-key add /tmp/yarn.gpg \
+  && echo 'deb https://dl.yarnpkg.com/debian/ stable main' >> \
+    /etc/apt/sources.list.d/yarn.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends yarn \
+  && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /hypcast
 
 
@@ -37,7 +50,7 @@ WORKDIR /hypcast
   EXPOSE 9400
 
   COPY ./build/deb-multimedia-keyring_2016.8.1_all.deb /tmp
-  RUN echo 'deb http://www.deb-multimedia.org stretch main non-free' >> \
+  RUN echo 'deb http://www.deb-multimedia.org buster main non-free' >> \
       /etc/apt/sources.list.d/deb-multimedia.list \
     && dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
 
@@ -45,7 +58,7 @@ WORKDIR /hypcast
     && apt-get install -y --no-install-recommends \
         dvb-apps \
         ffmpeg \
-        libfdk-aac1 \
+        libfdk-aac2 \
         gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-ugly \
     && rm -rf /var/lib/apt/lists/*
