@@ -1,3 +1,24 @@
+**NOTE:** This is the _experimental_ `gstreamer` branch. It is liable to break,
+get rebased, or get deleted at any time.
+
+### Why GStreamer?
+
+[GStreamer] is a mature framework for constructing multimedia pipelines out of
+a wide variety of plugins (video device sources, encoders, network streaming
+formats, etc.). In particular, rather than having a complex state machine
+control multiple child processes to hack a pipeline together, GStreamer allows
+us to directly link TV tuner input to appropriate encoders, and eventually to
+HLS output, all within a single process and with a simple API.
+
+The most immediate benefit is that GStreamer-powered streams start up much
+faster than legacy streams. The long-term benefit is the flexibility afforded
+by GStreamer, which would allow for easier experimentation with other streaming
+technologies, encoders, etc.
+
+[GStreamer]: https://gstreamer.freedesktop.org/
+
+---
+
 ![Screenshot of the main Hypcast UI](/doc/screenshot.png)
 
 **Hypcast is an interactive web app that lets you take your TV anywhere.**
