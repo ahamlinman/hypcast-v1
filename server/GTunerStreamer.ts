@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { EventEmitter } from 'events';
 import { Pipeline } from 'gstreamer-superficial';
 
-import { TuneData } from '../models/TuneData';
-import { createTmpDir } from './StreamerUtils';
+import { TuneData, Profile } from '../models/TuneData';
+import { createTmpDir, createNewFile } from './StreamerUtils';
 
 export default class GTunerStreamer extends EventEmitter {
   public readonly channelsPath: string;
@@ -21,12 +23,12 @@ export default class GTunerStreamer extends EventEmitter {
     this.state = 'inactive';
   }
 
-  private createPipeline(path: string) {
-    console.log('path', path);
+  private createPipeline(outDir: string, profile: Profile) {
+    console.log('outDir', outDir);
     const queue = 'queue leaky=downstream max-size-time=2500000000 max-size-buffers=0 max-size-bytes=0';
 
     return new Pipeline(`
-    hlssink2 name=hls target-duration=2 playlist-length=30 playlist-location=${path}/stream.m3u8 location=${path}/segment%05d.ts
+    hlssink2 name=hls target-duration=3 playlist-length=30 playlist-location=${outDir}/stream.m3u8 location=${outDir}/segment%05d.ts
 
     dvbsrc delsys=atsc modulation=8vsb frequency=617028615
       ! tsdemux program-number=3 name=dmx
@@ -34,14 +36,14 @@ export default class GTunerStreamer extends EventEmitter {
     dmx.
       ! ${queue}
       ! decodebin
-      ! x264enc tune=zerolatency speed-preset=ultrafast
+      ! x264enc tune=zerolatency speed-preset=${profile.videoPreset} bitrate=${profile.videoKbitSec}
       ! hls.video
 
     dmx.
       ! ${queue}
       ! decodebin
       ! audioconvert
-      ! faac bitrate=256000
+      ! faac bitrate=${profile.audioKbitSec * 1000}
       ! hls.audio
     `);
   }
@@ -55,13 +57,22 @@ export default class GTunerStreamer extends EventEmitter {
     this.streamPath = dirPath;
     this.cleanTmp = clean;
 
+    const playlistPath = path.join(dirPath, 'stream.m3u8');
+    createNewFile(playlistPath);
+
+    const watcher = fs.watch(playlistPath).once('change', () => {
+      watcher.close();
+      this.emit('transition', { fromState: 'inactive', toState: 'active' });
+      this.state = 'active';
+    });
+
     console.log('tuneData', data);
-    this.pipeline = this.createPipeline(dirPath);
+    this.tuneData = data;
+    this.pipeline = this.createPipeline(dirPath, data.profile);
     this.pipeline.play();
 
-    this.emit('transition', { fromState: 'inactive', toState: 'active' });
-    this.state = 'active';
-    this.tuneData = data;
+    this.emit('transition', { fromState: 'inactive', toState: 'buffering' });
+    this.state = 'buffering';
   }
 
   stop() {
