@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onTuneDataChange={handleTuneDataChange}
         onTune={handleTune}
         onStop={handleStop} />,
-      document.getElementById('hypcast-app')
+      document.getElementById('hypcast-app'),
     );
   }
 });
