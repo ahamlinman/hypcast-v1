@@ -66,10 +66,7 @@ module.exports = function webpackConfig(_, argv) {
           use: [
             {
               loader: 'html-loader',
-              options: Object.assign(
-                { attrs: ['img:src', 'link:href'] },
-                (mode === 'production') ? { minimize: true } : {},
-              ),
+              options: { minimize: mode === 'production' },
             },
           ],
         },
