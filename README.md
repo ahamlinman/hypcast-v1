@@ -19,7 +19,8 @@ your tablet, or control your desktop's stream from your phone!
 
 ## Requirements
 
-* A Linux server, preferably with [Docker] installed
+* A Linux server, preferably with a container runtime like [Docker] or [Podman]
+  installed
 * A [LinuxTV]-compatible tuner card (see "Hardware device information" on the
   linked wiki page)
   - Currently, only ATSC tuning is supported. However, the ATSC code should be
@@ -36,37 +37,52 @@ your tablet, or control your desktop's stream from your phone!
   stream is started. An example file with my personal settings (used with an
   Intel Core i5-3570k at 3.4 GHz) is in the `doc/` directory.
 
-If you choose to run Hypcast without Docker, you'll also need:
+If you choose not to use the Hypcast container image, you'll also need the
+following on your host:
 
 * [ffmpeg], with support for libx264 and libfdk\_aac
 * [dvb-apps] from LinuxTV
 
 [Docker]: https://www.docker.com/community-edition
+[Podman]: https://podman.io/
 [ffmpeg]: https://www.ffmpeg.org/
 [dvb-apps]: https://linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
 
-## Setup
+## Container Setup
 
-These instructions assume that you'll be running Hypcast in a Docker container.
-Helper scripts are defined in `package.json` to help facilitate this use. To
-use them, you should install the [Yarn] package manager.
+Hypcast is built and distributed as [ahamlinman/hypcast] on Docker Hub. Here
+are some tips for starting a Hypcast container on your server:
 
-Note that if your user does not have permission to connect to the Docker daemon
-on your system, you will need to invoke Yarn with `sudo` to run the helper
-scripts. See [Docker's documentation] for details.
+* Hypcast requires access to your TV tuner device, which usually exists
+  somewhere under `/dev/dvb`. Docker and Podman support a `--device` flag to
+  pass this device through without giving your container full privileges, e.g.
+  `--device /dev/dvb`. Otherwise, you may need to run Hypcast as a privileged
+  container.
+* Hypcast looks for `channels.conf` and `profiles.json` under `/hypcast/config`
+  inside the container. Put these somewhere on your host (e.g. `/etc/hypcast`)
+  and use a read-only volume mount to expose them, e.g.
+  `-v /etc/hypcast:/hypcast/config:ro`.
+* Hypcast listens on port 9400 by default. Expose this port with `-p`, e.g.
+  `-p 9400:9400`.
+* Hypcast uses `/tmp` to store snippets of transcoded video. I highly recommend
+  you make this a tmpfs mount, e.g. `--tmpfs /tmp`.
 
-1. Place your `channels.conf` and `profiles.json` files under `/etc/hypcast` on
-   your server.
-1. Run `yarn run docker:pull` to pull the Hypcast image from Docker Hub.
-   (Alternatively, run `yarn run docker:build` to create the image from scratch
-   on your own machine.)
-1. Run `yarn run docker:run` to start a Hypcast container. The container will
-   have access to the tuner devices under `/dev/dvb` on your server, and will
-   automatically restart if it terminates or if your system is rebooted.
-1. Go to http://localhost:9400.
+With all of that put together, an example of running Hypcast in Docker might
+look as follows:
 
-[Yarn]: https://yarnpkg.com/en/docs/install
-[Docker's documentation]: https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user
+```sh
+sudo docker run -d --restart always \
+  --device /dev/dvb \
+  -v /etc/hypcast:/hypcast/config:ro \
+  --tmpfs /tmp \
+  -p 9400:9400 \
+  --name hypcast \
+  ahamlinman/hypcast
+```
+
+Adjust as necessary for your own setup!
+
+[ahamlinman/hypcast]: https://hub.docker.com/r/ahamlinman/hypcast
 
 ## Caveats and Limitations
 
