@@ -1,6 +1,6 @@
 {
   "name": "hypcast",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Easily stream television over the Internet with HTTP Live Streaming",
   "main": "dist/server/index.js",
   "scripts": {
