@@ -3,7 +3,7 @@
 # many stages in this file to parallelize the build, cutting the time roughly
 # in half.
 
-FROM node:14-stretch-slim AS base
+FROM node:14-buster-slim AS base
 WORKDIR /hypcast
 
 
@@ -37,12 +37,17 @@ WORKDIR /hypcast
   EXPOSE 9400
 
   COPY ./build/deb-multimedia-keyring_2016.8.1_all.deb /tmp
-  RUN echo 'deb http://www.deb-multimedia.org stretch main non-free' >> \
+  RUN echo 'deb http://www.deb-multimedia.org buster main non-free' >> \
       /etc/apt/sources.list.d/deb-multimedia.list \
     && dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
 
+  # makedev, a dependency of dvb-apps, tries to create device nodes when
+  # installed. This is unnecessary (we expect the user to pass their DVB
+  # devices to the container) and not allowed in rootless builds. We use the
+  # strategy from https://serverfault.com/a/663803 to prevent its installation.
   RUN apt-get update \
-    && apt-get install -y --no-install-recommends libfdk-aac1 ffmpeg dvb-apps \
+    && apt-get install -y --no-install-recommends \
+        libfdk-aac2 ffmpeg dvb-apps makedev- \
     && rm -rf /var/lib/apt/lists/*
 
   COPY --from=dist-modules /hypcast/node_modules /hypcast/node_modules
