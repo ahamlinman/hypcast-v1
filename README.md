@@ -1,3 +1,10 @@
+**This version of Hypcast is not maintained.** It has been obsoleted by version
+2 of Hypcast, which is developed in the `main` branch.
+
+The original README follows.
+
+---
+
 ![Screenshot of the main Hypcast UI](/doc/screenshot.png)
 
 **Hypcast is an interactive web app that lets you take your TV anywhere.**
@@ -50,8 +57,8 @@ following on your host:
 
 ## Container Setup
 
-Hypcast is built and distributed as [ahamlinman/hypcast] on Docker Hub. Here
-are some tips for starting a Hypcast container on your server:
+A `Dockerfile` is provided to build a container image for Hypcast. Here are
+some tips for starting a Hypcast container on your server:
 
 * Hypcast requires access to your TV tuner device, which usually exists
   somewhere under `/dev/dvb`. Docker and Podman support a `--device` flag to
