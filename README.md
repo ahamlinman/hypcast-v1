@@ -1,5 +1,5 @@
 **This version of Hypcast is not maintained.** It has been obsoleted by version
-2 of Hypcast, which is developed in the `main` branch.
+2 of Hypcast, which is developed at https://github.com/ahamlinman/hypcast.
 
 The original README follows.
 
